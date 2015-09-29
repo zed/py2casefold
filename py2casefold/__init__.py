@@ -1,7 +1,9 @@
 import os
+import re
 
 MAP_FILE = "CaseFolding.txt"
 
+casefolding_txt_version = None
 _folding_map = {}
 
 def _get_unichr(s):
@@ -17,11 +19,15 @@ def _get_unichr(s):
 
 
 def _read_unicode_data():
-    global _folding_map
+    global _folding_map, casefolding_txt_version
     map_path = os.path.join(os.path.dirname(__file__), MAP_FILE)
     with open(map_path, "r") as fp:
         for line in fp:
             if line.startswith("#") or (line.strip() == ""):
+                if casefolding_txt_version is None:
+                    m = re.search(r'CaseFolding-(\d+\.\d+\.\d+)\.txt', line)
+                    if m:
+                        casefolding_txt_version = m.group(1)
                 continue
             code, status, mapping, name = line.split("; ")
             in_char = _get_unichr(code)
@@ -37,7 +43,7 @@ def casefold(u):
 
     ValueError is raised if u is not a unicode instance. casefold is a unicode
     concept.
-    
+
     """
     if not isinstance(u, unicode):
         raise ValueError("u must be unicode")
